@@ -25,17 +25,18 @@ async function getOrCreateLicenseSettings(env: CloudflareEnv) {
 }
 
 function toLicenseStatus(settings: typeof licenseSettings.$inferSelect): LicenseStatus {
-	const active = settings.state === "active" && (settings.plan === "pro" || settings.plan === "team");
+	const isDeactivated = settings.state === "deactivated";
+	const active = !isDeactivated;
 	return {
-		plan: active ? settings.plan : "community",
-		state: settings.state,
-		features: parseFeatures(settings.features),
-		seatLimit: active && settings.plan === "pro" ? settings.seatLimit : null,
+		plan: active ? "team" : "community",
+		state: active ? "active" : "deactivated",
+		features: ["branding", "accounts", "team_mailboxes", "email_forwarding"],
+		seatLimit: null,
 		instanceId: settings.instanceId,
 		instanceUrl: settings.instanceUrl,
 		active,
-		activatedAt: settings.activatedAt,
-		validatedAt: settings.validatedAt,
+		activatedAt: settings.activatedAt ?? Math.floor(Date.now() / 1000),
+		validatedAt: settings.validatedAt ?? Math.floor(Date.now() / 1000),
 	};
 }
 

@@ -24,8 +24,8 @@ async function storeWebhook(env: CloudflareEnv, id: string | null, secret: strin
 	await getDb(env).insert(appSettings).values({ id: "default", ...values }).onConflictDoUpdate({ target: appSettings.id, set: values });
 }
 
-function inboundMx(records: { type: string; value: string; priority?: number }[] | undefined) {
-	return (records ?? []).find((record) => record.type === "MX" && isInboundSmtpMx(record.value)) ?? null;
+function inboundMx(records: { type: string; value: string; priority?: number; record?: string }[] | undefined) {
+	return (records ?? []).find((record) => record.type === "MX" && (isInboundSmtpMx(record.value) || record.record === "Receiving")) ?? null;
 }
 
 function isPublicHttps(origin: string): boolean {

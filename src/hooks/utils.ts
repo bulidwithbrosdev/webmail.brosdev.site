@@ -143,7 +143,14 @@ export async function fetchMessageCounts(mailboxId?: string | null, force = fals
 		if (mailboxId) params.set("mailboxId", mailboxId);
 		const query = params.toString();
 		const res = await authFetch(`/api/messages/counts${query ? `?${query}` : ""}`);
-		const data = (await res.json()) as { counts?: MessageCounts };
+		if (!res.ok) return undefined;
+		const text = await res.text();
+		let data: { counts?: MessageCounts } = {};
+		try {
+			data = text ? JSON.parse(text) : {};
+		} catch {
+			return undefined;
+		}
 		const counts = data.counts;
 		if (
 			counts &&
@@ -170,7 +177,17 @@ export async function fetchMessageList(params: URLSearchParams, force = false): 
 
 	const requestGeneration = messageCacheGeneration;
 	const request = authFetch(`/api/messages?${key}`)
-		.then((res) => res.json())
+		.then(async (res) => {
+			if (!res.ok) {
+				return { messages: [], total: 0 } as MessageListResponse;
+			}
+			const text = await res.text();
+			try {
+				return (text ? JSON.parse(text) : { messages: [], total: 0 }) as MessageListResponse;
+			} catch {
+				return { messages: [], total: 0 } as MessageListResponse;
+			}
+		})
 		.then((data) => {
 			const response = data as MessageListResponse;
 			if (requestGeneration === messageCacheGeneration) {
