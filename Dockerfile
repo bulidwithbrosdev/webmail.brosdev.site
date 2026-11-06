@@ -9,7 +9,7 @@ ENV NEXT_TELEMETRY_DISABLED=1 MAILFLARE_RUNTIME=node
 FROM base AS deps
 RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ && rm -rf /var/lib/apt/lists/*
 COPY package.json package-lock.json ./
-RUN npm ci --ignore-scripts && npm rebuild better-sqlite3
+RUN (npm ci --ignore-scripts || npm install --ignore-scripts) && npm rebuild better-sqlite3
 
 FROM deps AS build
 COPY . .
